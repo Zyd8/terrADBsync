@@ -5,45 +5,72 @@ class Backup:
 
     curr_pc_os = ""
 
-    def check_pc_backup_dir(self):
-        if Backup.curr_pc_os == Path.WINDOWS.value:
-            if not os.path.exists(Path.WINDOWS.get_terraria_backup_root_dir()):
+    def __init__(self, pc, android):
+        self.pc = pc
+        self.android = android 
 
-                Backup.make_pc_backup_dir(Path.WINDOWS.get_terraria_backup_root_dir())
-                print("PC backup root folder is created as it does not exist")
+    def get_pc_end_path(self):
+        slash_list = []
+        for index, slash in enumerate(self.pc):
+            if slash == "\\":
+                slash_list.append(index)
+        return self.pc[max(slash_list)+1::]
+        
+    def get_android_end_path(self):
+        slash_list = []
+        for index, slash in enumerate(self.android):
+            if slash == "/":
+                slash_list.append(index)
+        return self.android[max(slash_list)+1::]
 
-            elif self.pc == Path.WINDOWS.get_terraria_player_dir() or self.pc == Path.WINDOWS.get_terraria_world_dir():
-                if not os.path.exists(os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), self.get_pc_end_path())):
+    def adb_pull_so_pc_backup(self):
+        file_list = os.listdir(self.pc)
+        for file in file_list:
+            if Backup.curr_pc_os == Path.WINDOWS.value:
+                source_path = os.path.join(self.pc, file)
+                destination_path = os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), self.get_pc_end_path(), file)
+                os.rename(source_path, destination_path)
+            elif Backup.curr_pc_os == Path.LINUX.value:
+                source_path = os.path.join(self.pc, file)
+                destination_path = os.path.join(Path.LINUX.get_terraria_backup_root_dir(), self.get_pc_end_path(), file)
+                os.rename(source_path, destination_path)
 
-                    Backup.make_pc_backup_dir(os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), self.get_pc_end_path()))
-                    print("PC backup branch folder is created as it does not exist")
-            
-        if Backup.curr_pc_os == Path.LINUX.value:
-            if not os.path.exists(Path.LINUX.get_terraria_backup_root_dir()):
-
-                Backup.make_pc_backup_dir(Path.LINUX.get_terraria_backup_root_dir())
-                print("PC backup root folder is created as it does not exist")
-
-            elif self.pc == Path.LINUX.get_terraria_player_dir() or self.pc == Path.LINUX.get_terraria_world_dir():
-                if not os.path.exists(os.path.join(Path.LINUX.get_terraria_backup_root_dir(), self.get_pc_end_path())):
-
-                    Backup.make_pc_backup_dir(Path.LINUX.get_terraria_backup_root_dir(), self.get_pc_end_path())
-                    print("PC backup branch folder is created as it does not exist")
-            
-    def check_android_backup_dir(self):
-        backup_root_path = os.path.join(Path.ANDROID.get_terraria_root_dir(), "backups").replace("\\", "/")
-        command = ["adb", "shell", "ls", backup_root_path]
+    def adb_push_so_android_backup(self):
+        command = ["adb", "shell", "ls", self.android]
         process = subprocess.run(command, capture_output=True, text=True)
-        if process.returncode != 0 and not process.stdout:
-            print("Android backup root folder is created as it does not exist")
-            Backup.make_android_backup_dir(backup_root_path)
-        else:
-            backup_branch_path = os.path.join(Path.ANDROID.get_terraria_root_dir(), "backups", self.get_android_end_path()).replace("\\", "/")
-            command = ["adb", "shell", "ls", backup_branch_path]
+        file_list = process.stdout.splitlines()
+        for file in file_list:
+            source_path = os.path.join(self.android, file).replace("\\", "/")
+            destination_path = os.path.join(Path.ANDROID.get_terraria_backup_root_dir(), self.get_pc_end_path(), file).replace("\\", "/")
+            command = ["adb", "shell", "mv", source_path, destination_path]
+            process = subprocess.run(command, capture_output=True, text=True)
+            if process.stdout:
+                print("Output:", process.stdout)
+            if process.stderr:
+                print("Error:", process.stderr)
+
+    @staticmethod
+    def check_pc_backup_dir():
+        if Backup.curr_pc_os == Path.WINDOWS.value:
+            for path in Path.WINDOWS.get_terraria_backup_array_dir():
+                if not os.path.exists(path):
+                    Backup.make_pc_backup_dir(path)
+                    print(f"PC backup: {path} folder is created")
+
+        if Backup.curr_pc_os == Path.LINUX.value:
+            for path in Path.LINUX.get_terraria_backup_array_dir():
+                if not os.path.exists(path):
+                    Backup.make_pc_backup_dir(path)
+                    print(f"PC backup: {path} folder is created")
+            
+    @staticmethod
+    def check_android_backup_dir():
+        for path in Path.ANDROID.get_terraria_backup_array_dir():
+            command = ["adb", "shell", "ls", path]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.returncode != 0 and not process.stdout:
-                print("Android backup branch folder is created as it does not exist")
-                Backup.make_android_backup_dir(backup_branch_path)
+                print(f"Android backup: {path} folder is created")
+                Backup.make_android_backup_dir(path)
 
     @staticmethod
     def make_pc_backup_dir(directory):
