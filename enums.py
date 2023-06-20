@@ -40,7 +40,6 @@ class Path(Enum):
         elif self == Path.ANDROID:
             return f"{Path.ANDROID.get_terraria_root_dir()}/backups"
 
-
 class Backup_Path(Enum):
     pass
         

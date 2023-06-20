@@ -1,10 +1,9 @@
-import sys
 import os
 import subprocess
-from terradbsync_enums import Path
-from terradbsync_enums import Commands
+from enums import Path
+from enums import Commands
 
-class Sync_Manager:
+class Sync:
     
     curr_pc_os = ""
 
@@ -28,15 +27,15 @@ class Sync_Manager:
 
     @staticmethod
     def check_pc_os():
-        if os.name == "nt":
-            Sync_Manager.curr_pc_os = Path.WINDOWS.value
-            return Path.WINDOWS
-        elif os.name == "posix":
-            Sync_Manager.curr_pc_os = Path.LINUX.value
+        if os.name == "posix":
+            Sync.curr_pc_os = Path.LINUX.value
             return Path.LINUX
+        elif os.name == "nt":
+            Sync.curr_pc_os = Path.WINDOWS.value
+            return Path.WINDOWS
         else:
             print("The PC operating system is not supported")
-            sys.exit(0)
+            return False
 
     @staticmethod
     def check_adb():
@@ -46,11 +45,10 @@ class Sync_Manager:
             devices = lines[1:]
             for device in devices:
                 if "device" in device:
-                    return True
-        print("android device cannot be found through adb connection")
+                    return True        
+        print("Android device cannot be found through adb connection")
         return False
 
-    @staticmethod
     def check_pc_dir(directory):
         if os.path.exists(directory):
             return True
@@ -58,9 +56,8 @@ class Sync_Manager:
             print("Terraria directory on PC does not exist")
             return False
     
-    @staticmethod 
-    def check_adb_dir(self):
-        command = ["adb", "shell", "ls",  self]
+    def check_adb_dir(directory):
+        command = ["adb", "shell", "ls",  directory]
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = process.communicate()
         if error:
@@ -71,11 +68,12 @@ class Sync_Manager:
 
     # From PC to Android
     def adb_push_directory(self):
-        print(self.pc)
-        Sync_Manager.check_pc_dir(self.pc)
-        Sync_Manager.check_adb_dir(self.android)
-        self.check_pc_backup()
-        #Sync_Manager.check_android_backup_dir()
+
+        Sync.check_pc_dir(self.pc)
+        Sync.check_adb_dir(self.android)
+        self.check_android_backup_dir()
+        self.check_pc_backup_dir()
+
         file_list = os.listdir(self.pc)
         for file in file_list:
             source_path = os.path.join(self.pc, file)
@@ -86,15 +84,15 @@ class Sync_Manager:
                 print("Output:", process.stdout)
             if process.stderr:
                 print("Error:", process.stderr)
-                return False
-        return True
         
     # From Android to PC
     def adb_pull_directory(self):
-        Sync_Manager.check_pc_dir(self.pc)
-        Sync_Manager.check_adb_dir(self.android)
-        self.check_pc_backup()
-        #Sync_Manager.check_android_backup_dir()
+
+        Sync.check_pc_dir(self.pc)
+        Sync.check_adb_dir(self.android) 
+        self.check_android_backup_dir()
+        self.check_pc_backup_dir()
+
         command = ["adb", "shell", "ls", self.android]
         process = subprocess.run(command, capture_output=True, text=True)
         file_list = process.stdout.splitlines()
@@ -107,44 +105,58 @@ class Sync_Manager:
                 print("Output:", process.stdout)
             if process.stderr:
                 print("Error:", process.stderr)
-                return False
-        return True
     
-
-    def check_pc_backup(self):
-        if Sync_Manager.curr_pc_os == Path.WINDOWS.value:
+    def check_pc_backup_dir(self):
+        if Sync.curr_pc_os == Path.WINDOWS.value:
             if not os.path.exists(Path.WINDOWS.get_terraria_backup_root_dir()):
-                Sync_Manager.make_pc_backup_dir(Path.WINDOWS.get_terraria_backup_root_dir())
+
+                Sync.make_pc_backup_dir(Path.WINDOWS.get_terraria_backup_root_dir())
+                print("PC backup root folder is created as it does not exist")
+
             elif self.pc == Path.WINDOWS.get_terraria_player_dir() or self.pc == Path.WINDOWS.get_terraria_world_dir():
                 if not os.path.exists(os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), self.get_pc_end_path())):
-                    Sync_Manager.make_pc_backup_dir(os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), self.get_pc_end_path()))
+
+                    Sync.make_pc_backup_dir(os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), self.get_pc_end_path()))
+                    print("PC backup branch folder is created as it does not exist")
             
-        if Sync_Manager.curr_pc_os == Path.LINUX.value:
+        if Sync.curr_pc_os == Path.LINUX.value:
             if not os.path.exists(Path.LINUX.get_terraria_backup_root_dir()):
-                Sync_Manager.make_pc_backup_dir(Path.LINUX.get_terraria_backup_root_dir())
+
+                Sync.make_pc_backup_dir(Path.LINUX.get_terraria_backup_root_dir())
+                print("PC backup root folder is created as it does not exist")
+
             elif self.pc == Path.LINUX.get_terraria_player_dir() or self.pc == Path.LINUX.get_terraria_world_dir():
                 if not os.path.exists(os.path.join(Path.LINUX.get_terraria_backup_root_dir(), self.get_pc_end_path())):
-                    Sync_Manager.make_pc_backup_dir(Path.LINUX.get_terraria_backup_root_dir(), self.get_pc_end_path())
+
+                    Sync.make_pc_backup_dir(Path.LINUX.get_terraria_backup_root_dir(), self.get_pc_end_path())
+                    print("PC backup branch folder is created as it does not exist")
             
-    @staticmethod
-    def check_android_backup_dir():
-        command = ["adb", "shell", "ls", os.path.join(Path.ANDROID.get_terraria_root_dir(), "backups").replace("\\", "/")]
+    def check_android_backup_dir(self):
+        backup_root_path = os.path.join(Path.ANDROID.get_terraria_root_dir(), "backups").replace("\\", "/")
+        command = ["adb", "shell", "ls", backup_root_path]
         process = subprocess.run(command, capture_output=True, text=True)
-        if process.returncode != 0 or not process.stdout:
-            Sync_Manager.make_android_backup_dir()
-    
+        if process.returncode != 0 and not process.stdout:
+            print("Android backup root folder is created as it does not exist")
+            Sync.make_android_backup_dir(backup_root_path)
+        else:
+            backup_branch_path = os.path.join(Path.ANDROID.get_terraria_root_dir(), "backups", self.get_android_end_path()).replace("\\", "/")
+            command = ["adb", "shell", "ls", backup_branch_path]
+            process = subprocess.run(command, capture_output=True, text=True)
+            if process.returncode != 0 and not process.stdout:
+                print("Android backup branch folder is created as it does not exist")
+                Sync.make_android_backup_dir(backup_branch_path)
+
     @staticmethod
     def make_pc_backup_dir(directory):
         try:
-                os.makedirs(directory)
-                print("Folder created successfully.")
-                
+            os.makedirs(directory)
+            print("Folder created successfully.")
         except OSError as e:
             print(f"Failed to create folder: {e}")
 
     @staticmethod
-    def make_android_backup_dir():
-        command = ["adb", "shell", "mkdir", os.path.join(Path.ANDROID.get_terraria_root_dir(), "backups").replace("\\", "/")]
+    def make_android_backup_dir(directory):
+        command = ["adb", "shell", "mkdir", directory]
         process = subprocess.run(command, capture_output=True, text=True)
         if process.stdout:
             print("Output:", process.stdout)
