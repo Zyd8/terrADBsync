@@ -1,48 +1,41 @@
 import subprocess
+import shutil
+from datetime import datetime
 from enums import *
 
 class Backup:
 
     curr_pc_os = ""
+    curr_datetime = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
     def __init__(self, pc, android):
         self.pc = pc
         self.android = android 
-
-    def get_pc_end_path(self):
-        slash_list = []
-        for index, slash in enumerate(self.pc):
-            if slash == "\\":
-                slash_list.append(index)
-        return self.pc[max(slash_list)+1::]
         
-    def get_android_end_path(self):
-        slash_list = []
-        for index, slash in enumerate(self.android):
-            if slash == "/":
-                slash_list.append(index)
-        return self.android[max(slash_list)+1::]
-
-    def adb_pull_so_pc_backup(self):
+    def backup_pc_files(self):
         file_list = os.listdir(self.pc)
         for file in file_list:
             if Backup.curr_pc_os == Path.WINDOWS.value:
                 source_path = os.path.join(self.pc, file)
-                destination_path = os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), self.get_pc_end_path(), file)
-                os.rename(source_path, destination_path)
+                destination_path = os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), os.path.basename(self.pc), file)
+                base_name, extension = os.path.splitext(destination_path)
+    
             elif Backup.curr_pc_os == Path.LINUX.value:
                 source_path = os.path.join(self.pc, file)
-                destination_path = os.path.join(Path.LINUX.get_terraria_backup_root_dir(), self.get_pc_end_path(), file)
-                os.rename(source_path, destination_path)
-
-    def adb_push_so_android_backup(self):
+                destination_path = os.path.join(Path.LINUX.get_terraria_backup_root_dir(), os.path.basename(self.pc), file)
+                base_name, extension = os.path.splitext(destination_path)
+                
+            shutil.copy(source_path, f"{base_name}[{Backup.curr_datetime}]{extension}")
+            
+    def backup_android_files(self):
         command = ["adb", "shell", "ls", self.android]
         process = subprocess.run(command, capture_output=True, text=True)
         file_list = process.stdout.splitlines()
         for file in file_list:
             source_path = os.path.join(self.android, file).replace("\\", "/")
-            destination_path = os.path.join(Path.ANDROID.get_terraria_backup_root_dir(), self.get_pc_end_path(), file).replace("\\", "/")
-            command = ["adb", "shell", "mv", source_path, destination_path]
+            destination_path = os.path.join(Path.ANDROID.get_terraria_backup_root_dir(), os.path.basename(self.android), file).replace("\\", "/")
+            base_name, extension = os.path.splitext(destination_path)
+            command = ["adb", "shell", "cp", source_path, f"{base_name}[{Backup.curr_datetime}]{extension}"]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.stdout:
                 print("Output:", process.stdout)
@@ -76,7 +69,6 @@ class Backup:
     def make_pc_backup_dir(directory):
         try:
             os.makedirs(directory)
-            print("Folder created successfully.")
         except OSError as e:
             print(f"Failed to create folder: {e}")
 

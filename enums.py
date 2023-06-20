@@ -14,7 +14,7 @@ class Path(Enum):
         elif self == Path.ANDROID:
             return "sdcard/Android/data/com.and.games505.TerrariaPaid"
         
-    def get_terraria_player_dir(self):
+    def get_terraria_players_dir(self):
         if self == Path.WINDOWS:
             return os.path.join(Path.WINDOWS.get_terraria_root_dir(), "Players")
         elif self == Path.LINUX:
@@ -22,7 +22,7 @@ class Path(Enum):
         elif self == Path.ANDROID:
             return f"{Path.ANDROID.get_terraria_root_dir()}/Players"
 
-    def get_terraria_world_dir(self):
+    def get_terraria_worlds_dir(self):
         if self == Path.WINDOWS:
             return os.path.join(Path.WINDOWS.get_terraria_root_dir(), "Worlds")
         elif self == Path.LINUX:
@@ -40,9 +40,9 @@ class Path(Enum):
         
     def get_terraria_backup_array_dir(self):
         if self == Path.WINDOWS:
-            return [os.path.join(Path.WINDOWS.get_terraria_root_dir()), 
-                    os.path.join(Path.WINDOWS.get_terraria_root_dir(), "Players"), 
-                    os.path.join(Path.WINDOWS.get_terraria_root_dir(), "Worlds")]
+            return [os.path.join(Path.WINDOWS.get_terraria_backup_root_dir()), 
+                    os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), "Players"), 
+                    os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), "Worlds")]
         elif self == Path.LINUX:
             return [f"{Path.LINUX.get_terraria_backup_root_dir()}",
                     f"{Path.LINUX.get_terraria_backup_root_dir()}/Players",

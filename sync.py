@@ -62,9 +62,9 @@ class Sync:
             command = ["adb", "push", source_path, destination_path]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.stdout:
-                print("Output:", process.stdout)
+                print("Output:", process.stdout, end="")
             if process.stderr:
-                print("Error:", process.stderr)
+                print("Error:", process.stderr, end="")
         
     # From Android to PC
     def adb_pull_directory(self):
@@ -81,9 +81,9 @@ class Sync:
             command = ["adb", "pull", source_path, destination_path]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.stdout:
-                print("Output:", process.stdout)
+                print("Output:", process.stdout, end="")
             if process.stderr:
-                print("Error:", process.stderr)
+                print("Error:", process.stderr, end="")
             
         
 
