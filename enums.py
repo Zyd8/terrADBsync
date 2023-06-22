@@ -29,6 +29,20 @@ class Path(Enum):
             return f"{Path.LINUX.get_terraria_root_dir()}/Worlds"
         elif self == Path.ANDROID:
             return f"{Path.ANDROID.get_terraria_root_dir()}/Worlds"
+        
+    def get_terraria_array_dir(self):
+        if self == Path.WINDOWS:
+            return [os.path.join(Path.WINDOWS.get_terraria_root_dir()), 
+                    os.path.join(Path.WINDOWS.get_terraria_players_dir()), 
+                    os.path.join(Path.WINDOWS.get_terraria_worlds_dir())]
+        elif self == Path.LINUX:
+            return [os.path.join(Path.LINUX.get_terraria_root_dir()), 
+                    os.path.join(Path.LINUX.get_terraria_players_dir()), 
+                    os.path.join(Path.LINUX.get_terraria_worlds_dir())]
+        elif self == Path.ANDROID:
+            return [os.path.join(Path.ANDROID.get_terraria_root_dir()), 
+                    os.path.join(Path.ANDROID.get_terraria_players_dir()), 
+                    os.path.join(Path.ANDROID.get_terraria_worlds_dir())]
     
     def get_terraria_backup_root_dir(self):
         if self == Path.WINDOWS:
@@ -51,3 +65,7 @@ class Path(Enum):
             return [f"{Path.ANDROID.get_terraria_backup_root_dir()}",
                     f"{Path.ANDROID.get_terraria_backup_root_dir()}/Players",
                     f"{Path.ANDROID.get_terraria_backup_root_dir()}/Worlds"]
+
+class Adb_Signal(Enum):
+    PULL = "pull"
+    PUSH = "push"
