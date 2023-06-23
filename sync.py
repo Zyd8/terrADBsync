@@ -7,12 +7,12 @@ class Sync:
     
     curr_pc_os = ""
 
-    def __init__(self, pc, android):
-        self.pc = pc
-        self.android = android 
+    def __init__(self, pc_dir, android_dir):
+        self.pc_dir = pc_dir
+        self.android_dir = android_dir
     
     @staticmethod
-    def is_file_valid(extension):
+    def is_valid_extension(extension):
         allowed_extensions = (".bak", ".plr", ".wld")
         if extension.lower() in allowed_extensions:
             return True
@@ -31,7 +31,7 @@ class Sync:
             return False
 
     @staticmethod
-    def check_adb():
+    def check_adb_connection():
         output = subprocess.check_output(["adb", "devices"]).decode()
         lines = output.strip().split('\n')
         if len(lines) > 1:
@@ -62,17 +62,17 @@ class Sync:
     # START=======================================================MANUAL SYNC OPERATIONS====================================================#
 
     # From PC to Android
-    def adb_push_files(self):
+    def man_push_files_to_android(self):
 
-        Sync.check_pc_dir(self.pc)
-        Sync.check_adb_dir(self.android)
+        Sync.check_pc_dir(self.pc_dir)
+        Sync.check_adb_dir(self.android_dir)
 
-        file_list = os.listdir(self.pc)
+        file_list = os.listdir(self.pc_dir)
         for file in file_list:
             filename, extension = os.path.splitext(file)
-            if Sync.is_file_valid(extension):
-                source_path = os.path.join(self.pc, file)
-                destination_path = self.android
+            if Sync.is_valid_extension(extension):
+                source_path = os.path.join(self.pc_dir, file)
+                destination_path = self.android_dir
                 command = ["adb", "push", source_path, destination_path]
                 process = subprocess.run(command, capture_output=True, text=True)
                 if process.stdout:
@@ -81,19 +81,19 @@ class Sync:
                     print("Error:", process.stderr, end="")
         
     # From Android to PC
-    def adb_pull_files(self):
+    def man_pull_files_from_android(self):
 
-        Sync.check_pc_dir(self.pc)
-        Sync.check_adb_dir(self.android) 
+        Sync.check_pc_dir(self.pc_dir)
+        Sync.check_adb_dir(self.android_dir) 
 
-        command = ["adb", "shell", "ls", self.android]
+        command = ["adb", "shell", "ls", self.android_dir]
         process = subprocess.run(command, capture_output=True, text=True)
         file_list = process.stdout.splitlines()
         for file in file_list:
             filename, extension = os.path.splitext(file)
-            if Sync.is_file_valid(extension):
-                source_path = os.path.join(self.android, file).replace("\\", "/")
-                destination_path = self.pc
+            if Sync.is_valid_extension(extension):
+                source_path = os.path.join(self.android_dir, file).replace("\\", "/")
+                destination_path = self.pc_dir
                 command = ["adb", "pull", source_path, destination_path]
                 process = subprocess.run(command, capture_output=True, text=True)
                 if process.stdout:
@@ -104,7 +104,7 @@ class Sync:
     # END=======================================================MANUAL SYNC OPERATIONS====================================================#
 
     # START==================================================AUTOMATIC SYNC OPERATIONS====================================================#
-    def adb_auto_sync():
+    def perform_auto_sync():
         '''Extracts the file paths and its respective last modified dates, placing it in a dictionary, then to a list.'''
 
         android_path_date_list = []
@@ -115,7 +115,7 @@ class Sync:
             file_list = process.stdout.splitlines()
             for file in file_list:
                 filename, extension = os.path.splitext(file)
-                if not Sync.is_file_valid(extension):
+                if not Sync.is_valid_extension(extension):
                     continue
                 file_path =  os.path.join(root_path, file).replace("\\", "/")
                 command = ["adb", "shell", "stat", "-c", "%y", file_path]
@@ -136,7 +136,7 @@ class Sync:
                 file_list = os.listdir(root_path)
                 for file in file_list:
                     filename, extension = os.path.splitext(file)
-                    if not Sync.is_file_valid(extension):
+                    if not Sync.is_valid_extension(extension):
                         continue
                     file_path = os.path.join(root_path, file)
                     last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
@@ -153,7 +153,7 @@ class Sync:
                 file_list = os.listdir(root_path)
                 for file in file_list:
                     filename, extension = os.path.splitext(file)
-                    if not Sync.is_file_valid(extension):
+                    if not Sync.is_valid_extension(extension):
                         continue
                     file_path = os.path.join(root_path, file)
                     last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
@@ -202,8 +202,8 @@ class Sync:
                 copy_to_android.append(pc_path)
         
         '''Does the neccessary file transfers based on the newly created lists'''
-        Sync.adb_pull_files(copy_to_pc)
-        Sync.adb_push_files(copy_to_android)
+        Sync.pull_files_from_android(copy_to_pc)
+        Sync.push_files_to_android(copy_to_android)
     
     def get_second_to_last_word(path):
         slash_list = []
@@ -215,7 +215,7 @@ class Sync:
     
      # From Android to PC
     @staticmethod
-    def adb_pull_files(path_list):
+    def pull_files_from_android(path_list):
         for path in path_list:
             source_path = path
             if Sync.curr_pc_os == Path.WINDOWS.value:
@@ -231,7 +231,7 @@ class Sync:
 
     # From PC to Android
     @staticmethod
-    def adb_push_files(path_list):
+    def push_files_to_android(path_list):
         for path in path_list:
             source_path = path
             destination_path = os.path.join(Path.ANDROID.get_terraria_root_dir(), Sync.get_second_to_last_word(source_path)).replace("\\", "/")
@@ -243,35 +243,4 @@ class Sync:
                 print("Error:", process.stderr, end="")
 
     # END==================================================##AUTOMATIC SYNC OPERATIONS====================================================#
-        
-            
-
-
-
-"""
-for pc_path_date in pc_path_date_list:
-    pc_date = pc_path_date["last_modified"]
-    pc_path = pc_path_date["file_path"]
     
-    found_match = False
-
-    for android_path_date in android_path_date_list:
-        android_date = android_path_date["last_modified"]
-        android_path = android_path_date["file_path"]
-
-        if os.path.basename(pc_path) == os.path.basename(android_path):
-            found_match = True
-            if pc_date > android_date:
-                copy_to_android.append(pc_path)
-            elif pc_date < android_date:
-                copy_to_pc.append(android_path)
-
-    if not found_match:
-        copy_to_android.append(pc_path)
-
-for android_path_date in android_path_date_list:
-    android_path = android_path_date["file_path"]
-    if not any(android_path == entry["file_path"] for entry in pc_path_date_list):
-        copy_to_pc.append(android_path)
-
-"""

@@ -66,6 +66,6 @@ class Path(Enum):
                     f"{Path.ANDROID.get_terraria_backup_root_dir()}/Players",
                     f"{Path.ANDROID.get_terraria_backup_root_dir()}/Worlds"]
 
-class Adb_Signal(Enum):
+class Adb(Enum):
     PULL = "pull"
     PUSH = "push"
