@@ -6,11 +6,11 @@ from enums import *
 class Backup:
 
     curr_pc_os = ""
-    curr_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    curr_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    def __init__(self, pc, android):
-        self.pc = pc
-        self.android = android 
+    def __init__(self, android_dir, pc_dir):
+        self.android_dir = android_dir 
+        self.pc_dir = pc_dir
 
     @staticmethod
     def is_file_valid(extension):
@@ -18,63 +18,63 @@ class Backup:
         if extension.lower() in allowed_extensions:
             return True
         return False
-        
-    def backup_pc_files(self):
-        file_list = os.listdir(self.pc)
-        for file in file_list:
-            filename, extension = os.path.splitext(file)
-            if Backup.is_file_valid(extension):
-                if Backup.curr_pc_os == Path.WINDOWS.value:
-                    source_path = os.path.join(self.pc, file)
-                    destination_path = os.path.join(Path.WINDOWS.get_terraria_backup_root_dir(), os.path.basename(self.pc), file)
-                    base_name, extension = os.path.splitext(destination_path)
-        
-                elif Backup.curr_pc_os == Path.LINUX.value:
-                    source_path = os.path.join(self.pc, file)
-                    destination_path = os.path.join(Path.LINUX.get_terraria_backup_root_dir(), os.path.basename(self.pc), file)
-                    base_name, extension = os.path.splitext(destination_path)
-                    
-                shutil.copy(source_path, f"{base_name}[{Backup.curr_datetime}]{extension}")
-            
-    def backup_android_files(self):
-        command = ["adb", "shell", "ls", self.android]
+    
+    def execute_backup(self):
+
+        android_backup_root_dir = os.path.join(Path.ANDROID.get_terraria_backup_root_dir(), Backup.curr_datetime).replace("\\", "/")
+        Backup.check_android_backup_dir(android_backup_root_dir)
+
+        android_backup_branch_dir = os.path.join(android_backup_root_dir, os.path.basename(self.android_dir)).replace("\\", "/")
+        Backup.check_android_backup_dir(android_backup_branch_dir)
+
+        command = ["adb", "shell", "ls", self.android_dir]
         process = subprocess.run(command, capture_output=True, text=True)
         file_list = process.stdout.splitlines()
         for file in file_list:
             filename, extension = os.path.splitext(file)
             if Backup.is_file_valid(extension):
-                source_path = os.path.join(self.android, file).replace("\\", "/")
-                destination_path = os.path.join(Path.ANDROID.get_terraria_backup_root_dir(), os.path.basename(self.android), file).replace("\\", "/")
-                base_name, extension = os.path.splitext(destination_path)
-                command = ["adb", "shell", "cp", source_path, f"{base_name}[{Backup.curr_datetime}]{extension}"]
+                source_path = os.path.join(self.android_dir, file).replace("\\", "/")
+                destination_path = os.path.join(android_backup_branch_dir, file).replace("\\", "/")
+                command = ["adb", "shell", "cp", source_path, destination_path]
                 process = subprocess.run(command, capture_output=True, text=True)
                 if process.stdout:
                     print("Output:", process.stdout)
                 if process.stderr:
                     print("Error:", process.stderr)
+        
+        pc_backup_root_dir = os.path.join(Backup.curr_pc_os.get_terraria_backup_root_dir(), Backup.curr_datetime)
+        Backup.check_pc_backup_dir(pc_backup_root_dir)
+
+        pc_backup_branch_dir = os.path.join(pc_backup_root_dir, os.path.basename(self.pc_dir))
+        Backup.check_pc_backup_dir(pc_backup_branch_dir)
+
+        file_list = os.listdir(self.pc_dir)
+        for file in file_list:
+            filename, extension = os.path.splitext(file)
+            if Backup.is_file_valid(extension):
+                if Backup.curr_pc_os == Path.WINDOWS:
+                    source_path = os.path.join(self.pc_dir, file)
+                    destination_path = os.path.join(pc_backup_branch_dir, file)
+        
+                elif Backup.curr_pc_os == Path.LINUX:
+                    source_path = os.path.join(self.pc_dir, file)
+                    destination_path = os.path.join(pc_backup_branch_dir, file)
+
+                shutil.copy(source_path, destination_path)
 
     @staticmethod
-    def check_pc_backup_dir():
-        if Backup.curr_pc_os == Path.WINDOWS.value:
-            for path in Path.WINDOWS.get_terraria_backup_array_dir():
-                if not os.path.exists(path):
-                    Backup.make_pc_backup_dir(path)
-                    print(f"PC backup: {path} folder is created")
-
-        if Backup.curr_pc_os == Path.LINUX.value:
-            for path in Path.LINUX.get_terraria_backup_array_dir():
-                if not os.path.exists(path):
-                    Backup.make_pc_backup_dir(path)
-                    print(f"PC backup: {path} folder is created")
+    def check_pc_backup_dir(directory):
+        if not os.path.exists(directory):
+            Backup.make_pc_backup_dir(directory)
+            print(f"PC backup: {directory} folder is created")
             
     @staticmethod
-    def check_android_backup_dir():
-        for path in Path.ANDROID.get_terraria_backup_array_dir():
-            command = ["adb", "shell", "ls", path]
+    def check_android_backup_dir(directory):
+            command = ["adb", "shell", "ls", directory]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.returncode != 0 and not process.stdout:
-                print(f"Android backup: {path} folder is created")
-                Backup.make_android_backup_dir(path)
+                print(f"Android backup: {directory} folder is created")
+                Backup.make_android_backup_dir(directory)
 
     @staticmethod
     def make_pc_backup_dir(directory):
