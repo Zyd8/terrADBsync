@@ -1,16 +1,11 @@
 import subprocess
 import shutil
-from datetime import datetime
-from enums import *
+import os
 
-class Backup:
+from path import Path
+from setup import Setup
 
-# START==================================================GlOBAL VARIABLES===================================================#
-
-    curr_pc_os = ""
-    curr_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-# END==================================================GlOBAL VARIABLES=====================================================#
+class Backup(Setup):
 
 # START================================================BACKUP UTILS=========================================================#
 
@@ -18,13 +13,6 @@ class Backup:
         self.android_path = android_path 
         self.pc_path = pc_path
 
-    @staticmethod
-    def is_valid_extension(extension):
-        allowed_extensions = (".bak", ".plr", ".wld")
-        if extension.lower() in allowed_extensions:
-            return True
-        return False
-    
     @staticmethod
     def check_pc_dir(path):
         if not os.path.exists(path):
@@ -61,9 +49,9 @@ class Backup:
     
     def execute_backup(self):
 
-        android_rootpath = os.path.join(Path.ANDROID.get_terraria_backup_rootpath(), Backup.curr_datetime).replace("\\", "/")
+        android_rootpath = os.path.join(Path.ANDROID.get_terraria_backup_rootpath(), Backup.current_datetime).replace("\\", "/")
         Backup.check_android_dir(android_rootpath)
-        pc_rootpath = os.path.join(Backup.curr_pc_os.get_terraria_backup_rootpath(), Backup.curr_datetime)
+        pc_rootpath = os.path.join(Backup.current_pc_os.get_terraria_backup_rootpath(), Backup.current_datetime)
         Backup.check_pc_dir(pc_rootpath)
 
         android_subpath = os.path.join(android_rootpath, os.path.basename(self.android_path)).replace("\\", "/")
@@ -90,11 +78,11 @@ class Backup:
         for file in file_list:
             filename, extension = os.path.splitext(file)
             if Backup.is_valid_extension(extension):
-                if Backup.curr_pc_os == Path.WINDOWS:
+                if Backup.current_pc_os == Path.WINDOWS:
                     source_path = os.path.join(self.pc_path, file)
                     destination_path = os.path.join(pc_subpath, file)
         
-                elif Backup.curr_pc_os == Path.LINUX:
+                elif Backup.current_pc_os == Path.LINUX:
                     source_path = os.path.join(self.pc_path, file)
                     destination_path = os.path.join(pc_subpath, file)
 

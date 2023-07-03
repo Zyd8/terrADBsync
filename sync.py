@@ -1,38 +1,19 @@
 import os
 import subprocess
-from enums import Path
 import datetime
+import time
+import sys
 
-class Sync:
-    
-# START==================================================GlOBAL VARIABLES===================================================#
+from path import Path
+from setup import Setup
 
-    curr_pc_os = ""
-
-# END==================================================GlOBAL VARIABLES===================================================#
+class Sync(Setup):
 
 # START==================================================SYNC UTILS=========================================================#
 
     def __init__(self, android_path, pc_path):
         self.android_path = android_path
         self.pc_path = pc_path
-    
-    @staticmethod
-    def is_valid_extension(extension):
-        allowed_extensions = (".bak", ".plr", ".wld")
-        if extension.lower() in allowed_extensions:
-            return True
-        return False
-
-    @staticmethod
-    def check_pc_os():
-        if os.name == "posix":
-            return Path.LINUX
-        elif os.name == "nt":
-            return Path.WINDOWS
-        else:
-            print("The PC operating system is not supported")
-            return False
 
     @staticmethod
     def check_adb_connection():
@@ -42,10 +23,24 @@ class Sync:
             devices = lines[1:]
             for device in devices:
                 if "device" in device:
-                    return True        
-        print("Android device cannot be found through adb connection")
-        return False
-
+                    continue
+        else:
+            print("Android device cannot be found through adb connection")
+            time.sleep(3)
+            sys.exit(0)
+   
+    @staticmethod
+    def check_pc_os():
+        if os.name == "posix":
+            Setup.current_pc_os = Path.LINUX
+        elif os.name == "nt":
+            Setup.current_pc_os = Path.WINDOWS
+        else:
+            print("The PC operating system is not supported")
+            time.sleep(3)
+            sys.exit(0)
+                        
+    @staticmethod
     def check_pc_dir(path):
         if os.path.exists(path):
             return True
@@ -53,6 +48,7 @@ class Sync:
             print("Terraria path on PC does not exist")
             return False
     
+    @staticmethod
     def check_android_dir(path):
         command = ["adb", "shell", "ls",  path]
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -63,6 +59,7 @@ class Sync:
             return False
         return True
     
+    @staticmethod
     def get_second_to_last_word(path):
         slash_list = []
         for index, slash in enumerate(path):
@@ -75,9 +72,9 @@ class Sync:
     def pull_files_from_android(path_list):
         for path in path_list:
             source_path = path
-            if Sync.curr_pc_os == Path.WINDOWS:
+            if Sync.current_pc_os == Path.WINDOWS:
                 destination_path = os.path.join(Path.WINDOWS.get_terraria_rootpath(), Sync.get_second_to_last_word(source_path)).replace("\\", "/")
-            elif Sync.curr_pc_os == Path.LINUX:
+            elif Sync.current_pc_os == Path.LINUX:
                 destination_path = os.path.join(Path.WINDOWS.get_terraria_rootpath(), Sync.get_second_to_last_word(source_path)).replace("\\", "/")
             command = ["adb", "pull", source_path, destination_path]
             process = subprocess.run(command, capture_output=True, text=True)
@@ -127,7 +124,7 @@ class Sync:
             android_path_date_list.append(android_path_date_dict)
         
         pc_path_date_list = []
-        if Sync.curr_pc_os == Path.WINDOWS:
+        if Sync.current_pc_os == Path.WINDOWS:
             file_list = os.listdir(self.pc_path)
             for file in file_list:
                 filename, extension = os.path.splitext(file)
@@ -142,7 +139,7 @@ class Sync:
                 pc_path_date_dict["last_modified"] = last_modified
                 pc_path_date_list.append(pc_path_date_dict)
 
-        elif Sync.curr_pc_os == Path.LINUX:
+        elif Sync.current_pc_os == Path.LINUX:
                 file_list = os.listdir(self.pc_path)
                 for file in file_list:
                     filename, extension = os.path.splitext(file)
