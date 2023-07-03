@@ -42,11 +42,10 @@ class Sync(Setup):
                         
     @staticmethod
     def check_pc_dir(path):
-        if os.path.exists(path):
-            return True
-        else:
-            print("Terraria path on PC does not exist")
-            return False
+        if not os.path.exists(path):
+            print("Terraria subpath on PC does not exist")
+            time.sleep(3)
+            sys.exit(0)
     
     @staticmethod
     def check_android_dir(path):
@@ -54,11 +53,11 @@ class Sync(Setup):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = process.communicate()
         if error:
-            print("Terraria path on android does not exist")
+            print("Terraria subpath on android does not exist")
             print("Error:", error.decode())
-            return False
-        return True
-    
+            time.sleep(3)
+            sys.exit(0)
+        
     @staticmethod
     def get_second_to_last_word(path):
         slash_list = []
@@ -98,6 +97,7 @@ class Sync(Setup):
 # END==================================================SYNC UTILS=========================================================#
     
 # START==================================================SYNC OPERATION====================================================#
+    
     def execute_sync(self):
         '''Extracts the file paths and its last modified dates, placing it in a dictionary, then to a list.'''
         Sync.check_android_dir(self.android_path)

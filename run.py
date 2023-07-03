@@ -1,9 +1,7 @@
-
 from path import Path
+from setup import Setup
 from sync import Sync
 from backup import Backup
-from setup import Setup
-
 
 def do_backups():
     '''Check for existing "backups" directory, otherwise, create'''

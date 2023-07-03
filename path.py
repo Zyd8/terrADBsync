@@ -1,7 +1,8 @@
-from enum import Enum
 import os
 import sys
 import subprocess
+
+from enum import Enum
 from setup import Setup
 
 class Path(Enum):

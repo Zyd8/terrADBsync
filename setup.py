@@ -1,9 +1,8 @@
-import subprocess
-import os 
 from datetime import datetime
 
 class Setup():
 
+# START================================================COMMON UTILS=========================================================#
     current_pc_os = ""
     current_pc_rootpath = ""
     current_android_rootpath = ""
@@ -16,12 +15,4 @@ class Setup():
             return True
         return False
     
-    
-
-    
-
-        
-                
-
-
-
+# END==================================================COMMON UTILS=========================================================#
