@@ -3,22 +3,26 @@ from setup import Setup
 from sync import Sync
 from backup import Backup
 
-def do_backups():
-    '''Check for existing "backups" directory, otherwise, create'''
-    Backup.check_android_dir(Path.ANDROID.get_terraria_backup_rootpath())
-    Backup.check_pc_dir(Backup.current_pc_os.get_terraria_backup_rootpath())
+def set_backups():
+    """makes "backups" directory if not created, else, create"""
+    Backup.set_android_dir(Path.ANDROID.get_terraria_backup_rootpath())
+    Backup.set_pc_dir(Backup.current_pc_os.get_terraria_backup_rootpath())
 
-def check_terraria_dirs():
-    '''Check for Terraria root directories, starting from default paths, customized or terminate'''
+def set_pc_android():
+    """Identify PC os and initialize adb connection"""
     Sync.check_pc_os()
     Sync.check_adb_connection()
+
+def set_paths():
+    """Find default Terraria directories, else, initialize custom paths"""
     Path.set_pc_terraria_rootpath()
     Path.set_android_terraria_rootpath()
 
 def main():
 
-    check_terraria_dirs()
-    do_backups()
+    set_pc_android()
+    set_paths()
+    set_backups()
 
     for android_path, pc_path in zip(Path.ANDROID.get_terraria_array_subpath(), Setup.current_pc_os.get_terraria_array_subpath()):
 

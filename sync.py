@@ -9,14 +9,13 @@ from setup import Setup
 
 class Sync(Setup):
 
-# START==================================================SYNC UTILS=========================================================#
-
     def __init__(self, android_path, pc_path):
         self.android_path = android_path
         self.pc_path = pc_path
 
     @staticmethod
     def check_adb_connection():
+        """Establish connection with the android device"""
         output = subprocess.check_output(["adb", "devices"]).decode()
         lines = output.strip().split('\n')
         if len(lines) > 1:
@@ -31,30 +30,13 @@ class Sync(Setup):
    
     @staticmethod
     def check_pc_os():
+        """Identify the PC os"""
         if os.name == "posix":
             Setup.current_pc_os = Path.LINUX
         elif os.name == "nt":
             Setup.current_pc_os = Path.WINDOWS
         else:
             print("The PC operating system is not supported")
-            time.sleep(3)
-            sys.exit(0)
-                        
-    @staticmethod
-    def check_pc_dir(path):
-        if not os.path.exists(path):
-            print("Terraria subpath on PC does not exist")
-            time.sleep(3)
-            sys.exit(0)
-    
-    @staticmethod
-    def check_android_dir(path):
-        command = ["adb", "shell", "ls",  path]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = process.communicate()
-        if error:
-            print("Terraria subpath on android does not exist")
-            print("Error:", error.decode())
             time.sleep(3)
             sys.exit(0)
         
@@ -71,14 +53,11 @@ class Sync(Setup):
     def pull_files_from_android(path_list):
         for path in path_list:
             source_path = path
-            if Sync.current_pc_os == Path.WINDOWS:
-                destination_path = os.path.join(Path.WINDOWS.get_terraria_rootpath(), Sync.get_second_to_last_word(source_path)).replace("\\", "/")
-            elif Sync.current_pc_os == Path.LINUX:
-                destination_path = os.path.join(Path.WINDOWS.get_terraria_rootpath(), Sync.get_second_to_last_word(source_path)).replace("\\", "/")
+            destination_path = os.path.join(Sync.current_pc_rootpath, Sync.get_second_to_last_word(source_path))
             command = ["adb", "pull", source_path, destination_path]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.stdout:
-                print("Output:", process.stdout, end="")
+                print("Sync:", process.stdout, end="")
             if process.stderr:
                 print("Error:", process.stderr, end="")
         
@@ -86,77 +65,17 @@ class Sync(Setup):
     def push_files_to_android(path_list):
         for path in path_list:
             source_path = path
-            destination_path = os.path.join(Path.ANDROID.get_terraria_rootpath(), Sync.get_second_to_last_word(source_path)).replace("\\", "/")
+            destination_path = os.path.join(Sync.current_android_rootpath, Sync.get_second_to_last_word(source_path)).replace("\\", "/")
             command = ["adb", "push", source_path, destination_path]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.stdout:
-                print("Output:", process.stdout, end="")
+                print("Sync:", process.stdout, end="")
             if process.stderr:
                 print("Error:", process.stderr, end="")
 
-# END==================================================SYNC UTILS=========================================================#
-    
-# START==================================================SYNC OPERATION====================================================#
-    
-    def execute_sync(self):
-        '''Extracts the file paths and its last modified dates, placing it in a dictionary, then to a list.'''
-        Sync.check_android_dir(self.android_path)
-        Sync.check_pc_dir(self.pc_path)
-
-        android_path_date_list = []
-        command = ["adb", "shell", "ls", self.android_path]
-        process = subprocess.run(command, capture_output=True, text=True)
-        file_list = process.stdout.splitlines()
-        for file in file_list:
-            filename, extension = os.path.splitext(file)
-            if not Sync.is_valid_extension(extension):
-                continue
-            file_path =  os.path.join(self.android_path, file).replace("\\", "/")
-            command = ["adb", "shell", "stat", "-c", "%y", file_path]
-            process = subprocess.run(command, capture_output=True, text=True)
-            output = process.stdout.strip()
-            last_modified = datetime.datetime.strptime(output[:19], "%Y-%m-%d %H:%M:%S")
-            last_modified = last_modified.strftime("%Y-%m-%d %H:%M:%S")
-
-            android_path_date_dict = {}
-            android_path_date_dict["file_path"] = file_path
-            android_path_date_dict["last_modified"] = last_modified
-            android_path_date_list.append(android_path_date_dict)
-        
-        pc_path_date_list = []
-        if Sync.current_pc_os == Path.WINDOWS:
-            file_list = os.listdir(self.pc_path)
-            for file in file_list:
-                filename, extension = os.path.splitext(file)
-                if not Sync.is_valid_extension(extension):
-                    continue
-                file_path = os.path.join(self.pc_path, file)
-                last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
-                last_modified = last_modified.strftime("%Y-%m-%d %H:%M:%S")
-                
-                pc_path_date_dict = {}
-                pc_path_date_dict["file_path"] = file_path
-                pc_path_date_dict["last_modified"] = last_modified
-                pc_path_date_list.append(pc_path_date_dict)
-
-        elif Sync.current_pc_os == Path.LINUX:
-                file_list = os.listdir(self.pc_path)
-                for file in file_list:
-                    filename, extension = os.path.splitext(file)
-                    if not Sync.is_valid_extension(extension):
-                        continue
-                    file_path = os.path.join(self.pc_path, file)
-                    last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
-                    last_modified = last_modified.strftime("%Y-%m-%d %H:%M:%S")
-
-                    pc_path_date_dict = {}
-                    pc_path_date_dict["file_path"] = file_path
-                    pc_path_date_dict["last_modified"] = last_modified
-                    pc_path_date_list.append(pc_path_date_dict)
-
-        '''Compares the dictionaries in a list, if a pair is found then the the latest last modification 
-            date will overwrite to the other platform. If a unique file is found, then it will be copied over.'''
-        
+    def compare_dates(android_path_date_list, pc_path_date_list):
+        """Compare each dictionaries in the list, if a match is found then the the latest last modification date 
+        will overwrite to the other platform. If a unique file is found, then it will be copied over."""
         copy_to_android = []
         copy_to_pc = []
         
@@ -188,9 +107,55 @@ class Sync(Setup):
                 print(f"A new file is synced from pc: {pc_path}")
                 copy_to_android.append(pc_path)
         
-        '''Does the neccessary file transfers based on the newly created lists'''
-        Sync.pull_files_from_android(copy_to_pc)
-        Sync.push_files_to_android(copy_to_android)
+        return copy_to_android, copy_to_pc
+
+    def get_modified_dates(self):
+        '''Extract the file paths and its last modified dates, placing the pair in a dictionary, then to a list.'''
+        android_path_date_list = []
+        command = ["adb", "shell", "ls", self.android_path]
+        process = subprocess.run(command, capture_output=True, text=True)
+        file_list = process.stdout.splitlines()
+        for file in file_list:
+            filename, extension = os.path.splitext(file)
+            if not Sync.is_valid_extension(extension):
+                continue
+            file_path =  os.path.join(self.android_path, file).replace("\\", "/")
+            command = ["adb", "shell", "stat", "-c", "%y", file_path]
+            process = subprocess.run(command, capture_output=True, text=True)
+            output = process.stdout.strip()
+            last_modified = datetime.datetime.strptime(output[:19], "%Y-%m-%d %H:%M:%S")
+            last_modified = last_modified.strftime("%Y-%m-%d %H:%M:%S")
+            android_path_date_dict = {}
+            android_path_date_dict["file_path"] = file_path
+            android_path_date_dict["last_modified"] = last_modified
+            android_path_date_list.append(android_path_date_dict)
+        
+        pc_path_date_list = []
+        file_list = os.listdir(self.pc_path)
+        for file in file_list:
+            filename, extension = os.path.splitext(file)
+            if not Sync.is_valid_extension(extension):
+                continue
+            file_path = os.path.join(self.pc_path, file)
+            last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+            last_modified = last_modified.strftime("%Y-%m-%d %H:%M:%S")
+            pc_path_date_dict = {}
+            pc_path_date_dict["file_path"] = file_path
+            pc_path_date_dict["last_modified"] = last_modified
+            pc_path_date_list.append(pc_path_date_dict)
     
-# END==================================================#SYNC OPERATION====================================================#
+        return android_path_date_list, pc_path_date_list
+    
+    def execute_sync(self):
+        
+        """Checks if the specified Terraria subpath exists"""
+        Sync.check_android_dir(self.android_path)
+        Sync.check_pc_dir(self.pc_path)
+
+        android_path_date_list, pc_path_date_list = Sync.get_modified_dates(self) 
+        copy_to_android, copy_to_pc = Sync.compare_dates(android_path_date_list, pc_path_date_list)
+        Sync.push_files_to_android(copy_to_android)
+        Sync.pull_files_from_android(copy_to_pc)
+        
+    
     
