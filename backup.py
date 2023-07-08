@@ -75,11 +75,6 @@ class Backup(Setup):
 
     
     def execute_backup(self):
-
-        """Checks if the specified Terraria subpath exists"""
-        Backup.check_pc_dir(self.pc_path)
-        Backup.check_android_dir(self.android_path)
-
         android_subpath, pc_subpath = Backup.set_unique_dir(self)
         Backup.fill_unique_dir(self, android_subpath, pc_subpath)
 

@@ -39,21 +39,12 @@ class Sync(Setup):
             print("The PC operating system is not supported")
             time.sleep(3)
             sys.exit(0)
-        
-    @staticmethod
-    def get_second_to_last_word(path):
-        slash_list = []
-        for index, slash in enumerate(path):
-            if slash == "\\" or slash == "/":
-                slash_list.append(index)
-        second_last_slash_index = slash_list[-2] if len(slash_list) >= 2 else -1
-        return path[second_last_slash_index+1:max(slash_list)]
 
     @staticmethod
     def pull_files_from_android(path_list):
         for path in path_list:
             source_path = path
-            destination_path = os.path.join(Sync.current_pc_rootpath, Sync.get_second_to_last_word(source_path))
+            destination_path = os.path.join(Sync.current_pc_rootpath, os.path.basename(os.path.dirname(source_path)))
             command = ["adb", "pull", source_path, destination_path]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.stdout:
@@ -65,7 +56,7 @@ class Sync(Setup):
     def push_files_to_android(path_list):
         for path in path_list:
             source_path = path
-            destination_path = os.path.join(Sync.current_android_rootpath, Sync.get_second_to_last_word(source_path)).replace("\\", "/")
+            destination_path = os.path.join(Sync.current_android_rootpath,  os.path.basename(os.path.dirname(source_path))).replace("\\", "/")
             command = ["adb", "push", source_path, destination_path]
             process = subprocess.run(command, capture_output=True, text=True)
             if process.stdout:
@@ -147,11 +138,6 @@ class Sync(Setup):
         return android_path_date_list, pc_path_date_list
     
     def execute_sync(self):
-        
-        """Checks if the specified Terraria subpath exists"""
-        Sync.check_android_dir(self.android_path)
-        Sync.check_pc_dir(self.pc_path)
-
         android_path_date_list, pc_path_date_list = Sync.get_modified_dates(self) 
         copy_to_android, copy_to_pc = Sync.compare_dates(android_path_date_list, pc_path_date_list)
         Sync.push_files_to_android(copy_to_android)
