@@ -1,33 +1,15 @@
 import os
-import sys
 import subprocess
-import time
 
 from enum import Enum
 from setup import Setup
+from errorhandler import ErrorHandler 
 
 class Path(Enum):
 
     WINDOWS = "Windows"
     LINUX = "Linux"
     ANDROID = "Android"
-
-    def handle_exceptions(func):
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except (FileNotFoundError, SyntaxError) as e:
-                Path.pc_custom_path()
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to execute adb command {e}")
-                Path.with_error_terminate()
-            except subprocess.TimeoutExpired:
-                print(f"adb command timed out")
-                Path.with_error_terminate()
-            except Exception as e:
-                print(f"An unexpected error occurred: {e}")
-                Path.with_error_terminate()
-        return wrapper
 
     def get_terraria_rootpath(self):
         if self == Path.WINDOWS or self == Path.LINUX:
@@ -55,7 +37,7 @@ class Path(Enum):
             return f"{Path.ANDROID.get_terraria_rootpath()}/backups"
     
     @staticmethod
-    @handle_exceptions
+    @ErrorHandler.handle_pathclass
     def set_pc_terraria_rootpath():
         """Check pc default paths then custom paths configuration file, else, prompt for a custom path"""
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
@@ -86,7 +68,7 @@ class Path(Enum):
             Path.pc_custom_path()
 
     @staticmethod
-    @handle_exceptions
+    @ErrorHandler.handle_pathclass
     def set_android_terraria_rootpath():
         default_path = "sdcard/Android/data/com.and.games505.TerrariaPaid"
         command = ["adb", "shell", "ls",  default_path]
@@ -99,7 +81,7 @@ class Path(Enum):
             Setup.current_android_rootpath = default_path
 
     @staticmethod
-    @handle_exceptions
+    @ErrorHandler.handle_pathclass
     def pc_custom_path():
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
         path = input("Terraria directory not found in PC.\nYou can enter the custom path of where you have set the Terraria directory.\nExample: path/to/'Terraria'.\nPress 'q' to terminate program.\n")
@@ -116,12 +98,3 @@ class Path(Enum):
                 print("Custom directory remembered")
             else: 
                 raise FileNotFoundError("Error: Input path not found")
-            
-    @staticmethod
-    def with_error_terminate():
-        time.sleep(3)
-        sys.exit(1)
-    
-    @staticmethod
-    def no_error_terminate():
-        sys.exit(0)

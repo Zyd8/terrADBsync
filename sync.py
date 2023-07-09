@@ -4,39 +4,16 @@ import datetime
 
 from path import Path
 from setup import Setup
+from errorhandler import ErrorHandler
 
 class Sync(Setup):
 
     def __init__(self, android_path, pc_path):
         self.android_path = android_path
         self.pc_path = pc_path
-  
-    def handle_exceptions(func):
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except subprocess.CalledProcessError as e:
-                print(f"Error: Failed to execute adb command {e}")
-                Sync.with_error_terminate()
-            except subprocess.TimeoutExpired:
-                print(f"Error: adb command timed out")
-                Sync.with_error_terminate()
-            except FileNotFoundError as e:
-                print(f"Error: File not found: {e}")
-                Sync.with_error_terminate()
-            except OSError as e:
-                print(f"Error: Failed to create folder: {e}")
-                Sync.with_error_terminate()
-            except RuntimeError as e:
-                print(f"Runtime error: {e}")
-                Sync.with_error_terminate()
-            except Exception as e:
-                print(f"Error: An unexpected error occurred: {e}")
-                Sync.with_error_terminate()
-        return wrapper
 
     @staticmethod
-    @handle_exceptions
+    @ErrorHandler.handle_sync
     def check_adb_connection():
         """Establish connection with the android device"""
         output = subprocess.check_output(["adb", "devices"]).decode()
@@ -50,7 +27,7 @@ class Sync(Setup):
             raise RuntimeError("Android device cannot be found through adb connection")
    
     @staticmethod
-    @handle_exceptions
+    @ErrorHandler.handle_sync
     def check_pc_os():
         """Identify the PC os"""
         if os.name == "posix":
@@ -62,7 +39,7 @@ class Sync(Setup):
             Sync.with_error_terminate()
 
     @staticmethod
-    @handle_exceptions
+    @ErrorHandler.handle_sync
     def pull_files_from_android(path_list):
         for path in path_list:
             source_path = path
@@ -75,7 +52,7 @@ class Sync(Setup):
                 print("Error:", process.stderr, end="")
         
     @staticmethod
-    @handle_exceptions
+    @ErrorHandler.handle_sync
     def push_files_to_android(path_list):
         for path in path_list:
             source_path = path
@@ -87,7 +64,7 @@ class Sync(Setup):
             if process.stderr:
                 print("Error:", process.stderr, end="")
 
-    @handle_exceptions
+    @ErrorHandler.handle_sync
     def compare_dates(android_path_date_list, pc_path_date_list):
         """Compare each dictionaries in the list, if a match is found then the the latest last modification date 
         will overwrite to the other platform. If a unique file is found, then it will be copied over."""
@@ -124,7 +101,7 @@ class Sync(Setup):
         
         return copy_to_android, copy_to_pc
 
-    @handle_exceptions
+    @ErrorHandler.handle_sync
     def get_modified_dates(self):
         '''Extract the file paths and its last modified dates, placing the pair in a dictionary, then to a list.'''
         android_path_date_list = []
