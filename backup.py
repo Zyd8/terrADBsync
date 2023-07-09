@@ -11,17 +11,37 @@ class Backup(Setup):
         self.android_path = android_path 
         self.pc_path = pc_path
 
+    def handle_exceptions(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except FileNotFoundError as e:
+                print(f"Error: File not found error: {e}")
+                Backup.with_error_terminate()
+            except subprocess.CalledProcessError as e:
+                print(f"Error: Failed to execute adb command {e}")
+                Backup.with_error_terminate()
+            except subprocess.TimeoutExpired:
+                print(f"Error: adb command timed out")
+                Backup.with_error_terminate()
+            except OSError as e:
+                print(f"Error: Failed to create folder: {e}")
+                Backup.with_error_terminate()
+            except Exception as e:
+                print(f"Error: An unexpected error occurred: {e}")
+                Backup.with_error_terminate()
+        return wrapper
+
     @staticmethod
+    @handle_exceptions
     def set_pc_dir(path):
         """Set empty pc folder for filling"""
         if not os.path.exists(path):
-            try:
-                os.makedirs(path)
-            except OSError as e:
-                print(f"Failed to create folder: {e}")
+            os.makedirs(path)        
             print(f"PC backup: {path} folder is created")
-            
+    
     @staticmethod
+    @handle_exceptions
     def set_android_dir(path):
         """Set empty android folder for filling"""
         command = ["adb", "shell", "ls", path]
@@ -33,8 +53,10 @@ class Backup(Setup):
                 print("Output:", process.stdout)
             if process.stderr:
                 print("Error:", process.stderr)     
-            print(f"Android backup: {path} folder is created")
-
+            else:
+                print(f"Android backup: {path} folder is created")
+                
+    @handle_exceptions
     def set_unique_dir(self):
         """Set an empty unique backup folder tree in the 'backups' folder"""
         android_rootpath = os.path.join(Path.ANDROID.get_terraria_backup_rootpath(), Backup.current_datetime).replace("\\", "/")
@@ -48,6 +70,7 @@ class Backup(Setup):
 
         return android_subpath, pc_subpath
     
+    @handle_exceptions
     def fill_unique_dir(self, android_subpath, pc_subpath):
         """Fills up the empty unique backup folder tree in the 'backups' folder"""
         command = ["adb", "shell", "ls", self.android_path]
@@ -72,7 +95,6 @@ class Backup(Setup):
                 source_path = os.path.join(self.pc_path, file)
                 destination_path = os.path.join(pc_subpath, file)
                 shutil.copy(source_path, destination_path)
-
     
     def execute_backup(self):
         android_subpath, pc_subpath = Backup.set_unique_dir(self)

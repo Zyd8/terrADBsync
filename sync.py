@@ -1,8 +1,6 @@
 import os
 import subprocess
 import datetime
-import time
-import sys
 
 from path import Path
 from setup import Setup
@@ -12,8 +10,33 @@ class Sync(Setup):
     def __init__(self, android_path, pc_path):
         self.android_path = android_path
         self.pc_path = pc_path
+  
+    def handle_exceptions(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except subprocess.CalledProcessError as e:
+                print(f"Error: Failed to execute adb command {e}")
+                Sync.with_error_terminate()
+            except subprocess.TimeoutExpired:
+                print(f"Error: adb command timed out")
+                Sync.with_error_terminate()
+            except FileNotFoundError as e:
+                print(f"Error: File not found: {e}")
+                Sync.with_error_terminate()
+            except OSError as e:
+                print(f"Error: Failed to create folder: {e}")
+                Sync.with_error_terminate()
+            except RuntimeError as e:
+                print(f"Runtime error: {e}")
+                Sync.with_error_terminate()
+            except Exception as e:
+                print(f"Error: An unexpected error occurred: {e}")
+                Sync.with_error_terminate()
+        return wrapper
 
     @staticmethod
+    @handle_exceptions
     def check_adb_connection():
         """Establish connection with the android device"""
         output = subprocess.check_output(["adb", "devices"]).decode()
@@ -24,11 +47,10 @@ class Sync(Setup):
                 if "device" in device:
                     continue
         else:
-            print("Android device cannot be found through adb connection")
-            time.sleep(3)
-            sys.exit(0)
+            raise RuntimeError("Android device cannot be found through adb connection")
    
     @staticmethod
+    @handle_exceptions
     def check_pc_os():
         """Identify the PC os"""
         if os.name == "posix":
@@ -37,10 +59,10 @@ class Sync(Setup):
             Setup.current_pc_os = Path.WINDOWS
         else:
             print("The PC operating system is not supported")
-            time.sleep(3)
-            sys.exit(0)
+            Sync.with_error_terminate()
 
     @staticmethod
+    @handle_exceptions
     def pull_files_from_android(path_list):
         for path in path_list:
             source_path = path
@@ -53,6 +75,7 @@ class Sync(Setup):
                 print("Error:", process.stderr, end="")
         
     @staticmethod
+    @handle_exceptions
     def push_files_to_android(path_list):
         for path in path_list:
             source_path = path
@@ -64,6 +87,7 @@ class Sync(Setup):
             if process.stderr:
                 print("Error:", process.stderr, end="")
 
+    @handle_exceptions
     def compare_dates(android_path_date_list, pc_path_date_list):
         """Compare each dictionaries in the list, if a match is found then the the latest last modification date 
         will overwrite to the other platform. If a unique file is found, then it will be copied over."""
@@ -100,6 +124,7 @@ class Sync(Setup):
         
         return copy_to_android, copy_to_pc
 
+    @handle_exceptions
     def get_modified_dates(self):
         '''Extract the file paths and its last modified dates, placing the pair in a dictionary, then to a list.'''
         android_path_date_list = []

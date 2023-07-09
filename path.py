@@ -12,6 +12,23 @@ class Path(Enum):
     LINUX = "Linux"
     ANDROID = "Android"
 
+    def handle_exceptions(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except (FileNotFoundError, SyntaxError) as e:
+                Path.pc_custom_path()
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to execute adb command {e}")
+                Path.with_error_terminate()
+            except subprocess.TimeoutExpired:
+                print(f"adb command timed out")
+                Path.with_error_terminate()
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+                Path.with_error_terminate()
+        return wrapper
+
     def get_terraria_rootpath(self):
         if self == Path.WINDOWS or self == Path.LINUX:
             return Setup.current_pc_rootpath
@@ -38,6 +55,7 @@ class Path(Enum):
             return f"{Path.ANDROID.get_terraria_rootpath()}/backups"
     
     @staticmethod
+    @handle_exceptions
     def set_pc_terraria_rootpath():
         """Check pc default paths then custom paths configuration file, else, prompt for a custom path"""
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
@@ -68,6 +86,7 @@ class Path(Enum):
             Path.pc_custom_path()
 
     @staticmethod
+    @handle_exceptions
     def set_android_terraria_rootpath():
         default_path = "sdcard/Android/data/com.and.games505.TerrariaPaid"
         command = ["adb", "shell", "ls",  default_path]
@@ -75,31 +94,34 @@ class Path(Enum):
         output, error = process.communicate()
         if error:
             print("Error:", error.decode())
-            raise RuntimeError("Terraria default path on Android does not exist")
+            raise subprocess.CalledProcessError("Error: Terraria default path on Android does not exist")
         else:
             Setup.current_android_rootpath = default_path
 
     @staticmethod
+    @handle_exceptions
     def pc_custom_path():
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
-        try:
-            path = input("Terraria directory not found in PC.\nYou can enter the custom path of where you have set the Terraria directory.\nExample: path/to/'Terraria'.\nPress 'q' to terminate program.\n")
-            if path.lower() == "q":
-                sys.exit(0)
-            elif os.path.basename(path) != "Terraria":
-                raise SyntaxError("The inputted path must end with 'Terraria'")
-            else: 
-                if os.path.exists(path):
-                    print("Custom directory found")
-                    with open(config_path, "w") as f:
-                        f.write(path)
-                    Setup.current_pc_rootpath = path
-                else: 
-                    raise FileNotFoundError("The input path does not exist.")
+        path = input("Terraria directory not found in PC.\nYou can enter the custom path of where you have set the Terraria directory.\nExample: path/to/'Terraria'.\nPress 'q' to terminate program.\n")
+        if path.lower() == "q":
+            Path.no_error_terminate()
+        elif os.path.basename(path) != "Terraria":
+            raise SyntaxError("Error: The inputted path must end with 'Terraria'")
+        else: 
+            if os.path.exists(path):
+                print("Custom directory found")
+                with open(config_path, "w") as f:
+                    f.write(path)
+                Setup.current_pc_rootpath = path
                 print("Custom directory remembered")
-        except (FileNotFoundError, SyntaxError) as e:
-            Path.pc_custom_path()
-        except Exception as e:
-            print("An unexpected error occurred:", str(e))
-            time.sleep(3)
-            sys.exit(0)
+            else: 
+                raise FileNotFoundError("Error: Input path not found")
+            
+    @staticmethod
+    def with_error_terminate():
+        time.sleep(3)
+        sys.exit(1)
+    
+    @staticmethod
+    def no_error_terminate():
+        sys.exit(0)
