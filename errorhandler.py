@@ -28,8 +28,9 @@ class ErrorHandler:
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except (FileNotFoundError, SyntaxError) as e:
-                ErrorHandler.pc_custom_path()
+            except (FileNotFoundError) as e:
+                print(f"File not found error: {e}")
+                ErrorHandler.with_error_terminate()
             except subprocess.CalledProcessError as e:
                 print(f"Failed to execute adb command {e}")
                 ErrorHandler.with_error_terminate()
@@ -47,19 +48,19 @@ class ErrorHandler:
             try:
                 return func(*args, **kwargs)
             except FileNotFoundError as e:
-                print(f"Error: File not found error: {e}")
+                print(f"File not found error: {e}")
                 ErrorHandler.with_error_terminate()
             except subprocess.CalledProcessError as e:
-                print(f"Error: Failed to execute adb command {e}")
+                print(f"Failed to execute adb command {e}")
                 ErrorHandler.with_error_terminate()
             except subprocess.TimeoutExpired:
-                print(f"Error: adb command timed out")
+                print(f"adb command timed out")
                 ErrorHandler.with_error_terminate()
             except OSError as e:
-                print(f"Error: Failed to create folder: {e}")
+                print(f"Failed to create folder: {e}")
                 ErrorHandler.with_error_terminate()
             except Exception as e:
-                print(f"Error: An unexpected error occurred: {e}")
+                print(f"An unexpected error occurred: {e}")
                 ErrorHandler.with_error_terminate()
         return wrapper
     
@@ -69,22 +70,22 @@ class ErrorHandler:
             try:
                 return func(*args, **kwargs)
             except subprocess.CalledProcessError as e:
-                print(f"Error: Failed to execute adb command {e}")
+                print(f"Failed to execute adb command {e}")
                 ErrorHandler.with_error_terminate()
             except subprocess.TimeoutExpired:
-                print(f"Error: adb command timed out")
+                print(f"adb command timed out")
                 ErrorHandler.with_error_terminate()
             except FileNotFoundError as e:
-                print(f"Error: File not found: {e}")
+                print(f"[Sync]File not found error: {e}")
                 ErrorHandler.with_error_terminate()
             except OSError as e:
-                print(f"Error: Failed to create folder: {e}")
+                print(f"Failed to create folder: {e}")
                 ErrorHandler.with_error_terminate()
             except RuntimeError as e:
                 print(f"Runtime error: {e}")
                 ErrorHandler.with_error_terminate()
             except Exception as e:
-                print(f"Error: An unexpected error occurred: {e}")
+                print(f"An unexpected error occurred: {e}")
                 ErrorHandler.with_error_terminate()
         return wrapper
     

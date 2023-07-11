@@ -1,6 +1,8 @@
 import os
 import subprocess
 import datetime
+import hashlib
+import tempfile
 
 from path import Path
 from setup import Setup
@@ -64,26 +66,52 @@ class Sync(Setup):
             if process.stderr:
                 print("Error:", process.stderr, end="")
 
+    @staticmethod
+    @ErrorHandler.handle_sync
+    def get_md5(path):
+        md5_hash = hashlib.md5()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                md5_hash.update(chunk)
+        return md5_hash.hexdigest()
+    
+    @staticmethod
+    @ErrorHandler.handle_sync
+    def set_android_tempfile(path):
+        source_path = path
+        destination_path = os.path.join(tempfile.gettempdir(), os.path.basename(path))
+        command = ["adb", "pull", source_path, destination_path]
+        process = subprocess.run(command, capture_output=True, text=True)
+        if process.stderr:
+            print("Error:", process.stderr, end="")
+
+        return destination_path
+    
+    @staticmethod
     @ErrorHandler.handle_sync
     def compare_dates(android_path_date_list, pc_path_date_list):
-        """Compare each dictionaries in the list, if a match is found then the the latest last modification date 
-        will overwrite to the other platform. If a unique file is found, then it will be copied over."""
+        """Compare the file paths and modification dates to determine the files to be synced"""
         copy_to_android = []
         copy_to_pc = []
-        
-        for pc_path_date in pc_path_date_list:
-            pc_date = pc_path_date["last_modified"]
-            pc_path = pc_path_date["file_path"]
-            for android_path_date in android_path_date_list:
-                android_date = android_path_date["last_modified"]
-                android_path = android_path_date["file_path"]
 
-                if os.path.basename(pc_path) == os.path.basename(android_path):
-                    if pc_date > android_date:
-                        copy_to_android.append(pc_path)
-                    elif pc_date < android_date:
-                        copy_to_pc.append(android_path)
-                    break 
+        for android_file in android_path_date_list:
+            android_path = android_file["file_path"]
+            android_date = android_file["last_modified"]
+            android_filename = os.path.basename(android_path)
+
+            for pc_file in pc_path_date_list:
+                pc_path = pc_file["file_path"]
+                pc_date = pc_file["last_modified"]
+                pc_filename = os.path.basename(pc_path)
+
+                if android_filename == pc_filename:
+                    android_temp_path = Sync.set_android_tempfile(android_path)
+                    if Sync.get_md5(android_temp_path) != Sync.get_md5(pc_path):
+                        if pc_date > android_date:
+                            copy_to_android.append(pc_path)
+                        elif pc_date < android_date:
+                            copy_to_pc.append(android_path)
+                    os.remove(android_temp_path)
 
         for android_path_date in android_path_date_list:
             android_path = android_path_date["file_path"]
@@ -98,8 +126,9 @@ class Sync(Setup):
             if not any(pc_filename == os.path.basename(entry["file_path"]) for entry in android_path_date_list):
                 print(f"A new file is synced from pc: {pc_path}")
                 copy_to_android.append(pc_path)
-        
+
         return copy_to_android, copy_to_pc
+
 
     @ErrorHandler.handle_sync
     def get_modified_dates(self):

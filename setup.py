@@ -10,7 +10,7 @@ class Setup():
     current_pc_rootpath = ""
     current_android_rootpath = ""
     current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
+    
     @staticmethod
     def is_valid_extension(extension):
         allowed_extensions = (".bak", ".plr", ".wld")
@@ -30,8 +30,7 @@ class Setup():
     def check_android_dir(path):
         """Checks android path that is supposed to exist, if not, terminate"""
         command = ["adb", "shell", "ls",  path]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = process.communicate()
-        if error:
-            print("Error:", error.decode())
+        process = subprocess.run(command, capture_output=True, text=True)
+        if process.stderr:
+            print("Error:", process.stderr)
             raise subprocess.CalledProcessError(f"Terraria subpath: '{os.path.basename(path)}' on android does not exist")

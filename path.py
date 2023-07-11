@@ -64,7 +64,8 @@ class Path(Enum):
                     Setup.current_pc_rootpath = custom_path
                     print("Custom directory found")
                     found_path = True
-        elif not found_path:
+
+        if not found_path:
             Path.pc_custom_path()
 
     @staticmethod
@@ -72,10 +73,9 @@ class Path(Enum):
     def set_android_terraria_rootpath():
         default_path = "sdcard/Android/data/com.and.games505.TerrariaPaid"
         command = ["adb", "shell", "ls",  default_path]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = process.communicate()
-        if error:
-            print("Error:", error.decode())
+        process = subprocess.run(command, capture_output=True, text=True)
+        if process.returncode != 0 or process.stderr:
+            print("Error:", process.stderr)
             raise subprocess.CalledProcessError("Error: Terraria default path on Android does not exist")
         else:
             Setup.current_android_rootpath = default_path
@@ -86,9 +86,10 @@ class Path(Enum):
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
         path = input("Terraria directory not found in PC.\nYou can enter the custom path of where you have set the Terraria directory.\nExample: path/to/'Terraria'.\nPress 'q' to terminate program.\n")
         if path.lower() == "q":
-            Path.no_error_terminate()
+            ErrorHandler.no_error_terminate()
         elif os.path.basename(path) != "Terraria":
-            raise SyntaxError("Error: The inputted path must end with 'Terraria'")
+            print("The inputted path must end with 'Terraria'. Try again.")
+            Path.pc_custom_path()
         else: 
             if os.path.exists(path):
                 print("Custom directory found")
@@ -97,4 +98,6 @@ class Path(Enum):
                 Setup.current_pc_rootpath = path
                 print("Custom directory remembered")
             else: 
-                raise FileNotFoundError("Error: Input path not found")
+                print("Input path not found. Try again.")
+                Path.pc_custom_path()
+                

@@ -27,8 +27,8 @@ def check_subpaths():
 def do_backup_sync():  
     """Do main operation"""
     for android_path, pc_path in zip(Path.ANDROID.get_terraria_array_subpath(), Setup.current_pc_os.get_terraria_array_subpath()):
-        obj_backup = Backup(android_path, pc_path)
-        obj_backup.execute_backup()
+        #obj_backup = Backup(android_path, pc_path)
+        #obj_backup.execute_backup()
         obj_sync = Sync(android_path, pc_path)
         obj_sync.execute_sync()
 
@@ -42,5 +42,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
