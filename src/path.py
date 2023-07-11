@@ -83,7 +83,7 @@ class Path(Enum):
     @staticmethod
     @ErrorHandler.handle_pathclass
     def pc_custom_path():
-        config_path = os.path.join(os.getcwd(), "custom_path.txt")
+        config_path = os.path.join(os.getcwd(), "config", "custom_path.txt")
         path = input("Terraria directory not found in PC.\nYou can enter the custom path of where you have set the Terraria directory.\nExample: path/to/'Terraria'.\nPress 'q' to terminate program.\n")
         if path.lower() == "q":
             ErrorHandler.no_error_terminate()
