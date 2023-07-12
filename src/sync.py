@@ -117,14 +117,14 @@ class Sync(Setup):
             android_path = android_path_date["file_path"]
             android_filename = os.path.basename(android_path)
             if not any(android_filename == os.path.basename(entry["file_path"]) for entry in pc_path_date_list):
-                print(f"A new file is synced from android: {android_path}")
+                print(f"A new file is being synced from android: {os.path.basename(android_path)}")
                 copy_to_pc.append(android_path)
 
         for pc_path_date in pc_path_date_list:
             pc_path = pc_path_date["file_path"]
             pc_filename = os.path.basename(pc_path)
             if not any(pc_filename == os.path.basename(entry["file_path"]) for entry in android_path_date_list):
-                print(f"A new file is synced from pc: {pc_path}")
+                print(f"A new file is being synced from pc: {os.path.basename(pc_path)}")
                 copy_to_android.append(pc_path)
 
         return copy_to_android, copy_to_pc
