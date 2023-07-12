@@ -60,7 +60,6 @@ class Path(Enum):
             with open(config_path, "r") as f:
                 custom_path = f.readline().strip()
                 if os.path.exists(custom_path):
-                    print(custom_path)
                     Setup.current_pc_rootpath = custom_path
                     print("Custom directory found")
                     found_path = True
