@@ -7,9 +7,11 @@ from errorhandler import ErrorHandler
 
 class Path(Enum):
 
+
     WINDOWS = "Windows"
     LINUX = "Linux"
     ANDROID = "Android"
+
 
     def get_terraria_rootpath(self):
         if self == Path.WINDOWS or self == Path.LINUX:
@@ -17,6 +19,7 @@ class Path(Enum):
         elif self == Path.ANDROID:
             return Setup.current_android_rootpath
         
+
     def get_terraria_array_subpath(self):
         if self == Path.WINDOWS:
             return [os.path.join(Path.WINDOWS.get_terraria_rootpath(), "Players"), 
@@ -28,6 +31,7 @@ class Path(Enum):
             return [f"{Path.ANDROID.get_terraria_rootpath()}/Players", 
                     f"{Path.ANDROID.get_terraria_rootpath()}/Worlds"]
     
+
     def get_terraria_backup_rootpath(self):
         if self == Path.WINDOWS:
             return os.path.join(Path.WINDOWS.get_terraria_rootpath(), "backups")
@@ -36,8 +40,8 @@ class Path(Enum):
         elif self == Path.ANDROID:
             return f"{Path.ANDROID.get_terraria_rootpath()}/backups"
     
+
     @staticmethod
-    @ErrorHandler.handle_pathclass
     def set_pc_terraria_rootpath():
         """Check pc default paths then custom paths configuration file, else, prompt for a custom path"""
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
@@ -67,20 +71,18 @@ class Path(Enum):
         if not found_path:
             Path.pc_custom_path()
 
-    @staticmethod
-    @ErrorHandler.handle_pathclass
-    def set_android_terraria_rootpath():
-        default_path = "sdcard/Android/data/com.and.games505.TerrariaPaid"
-        command = ["adb", "shell", "ls",  default_path]
-        process = subprocess.run(command, capture_output=True, text=True)
-        if process.returncode != 0 or process.stderr:
-            print("Error:", process.stderr)
-            raise subprocess.CalledProcessError("Error: Terraria default path on Android does not exist")
-        else:
-            Setup.current_android_rootpath = default_path
 
     @staticmethod
-    @ErrorHandler.handle_pathclass
+    def set_android_terraria_rootpath():
+        default_path = "sdcard/Android/data/com.and.games505.TerrariaPaid"
+        process = Setup.do_adb(["shell", "ls",  default_path])
+        if process.stderr:
+            print("Error:", process.stderr)
+            raise subprocess.CalledProcessError("Error: Terraria default path on Android does not exist")
+        Setup.current_android_rootpath = default_path
+
+
+    @staticmethod
     def pc_custom_path():
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
         path = input("Terraria directory not found in PC.\nYou can enter the custom path of where you have set the Terraria directory.\nExample: path/to/'Terraria'.\nPress 'q' to terminate program.\n")

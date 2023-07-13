@@ -9,8 +9,9 @@ def set_backups():
     Backup.set_pc_dir(Backup.current_pc_os.get_terraria_backup_rootpath())
 
 def set_pc_android():
-    """Identify PC os and initialize adb connection"""
+    """Identify PC os, check adb directory and initialize adb connection"""
     Sync.check_pc_os()
+    Sync.check_adb_dir()
     Sync.check_adb_connection()
 
 def set_rootpaths():

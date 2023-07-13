@@ -7,10 +7,14 @@ from errorhandler import ErrorHandler
 class Setup():
 
     current_pc_os = ""
+    adb_path = ""
     current_pc_rootpath = ""
     current_android_rootpath = ""
     current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    
+
+    def do_adb(command):
+        return subprocess.run([Setup.adb_path] + command, capture_output=True, text=True)
+
     @staticmethod
     def is_valid_extension(extension):
         allowed_extensions = (".bak", ".plr", ".wld")
@@ -19,18 +23,15 @@ class Setup():
         return False
 
     @staticmethod
-    @ErrorHandler.handle_setupclass
     def check_pc_dir(path):
         """Checks pc path that is supposed to exist, if not, terminate"""
         if not os.path.exists(path):
-            raise FileNotFoundError(f"Terraria subpath: '{os.path.basename(path)}' on PC does not exist")
+            raise FileNotFoundError(f"Required directory: {path} on PC does not exist")
         
     @staticmethod
-    @ErrorHandler.handle_setupclass
     def check_android_dir(path):
         """Checks android path that is supposed to exist, if not, terminate"""
-        command = ["adb", "shell", "ls",  path]
-        process = subprocess.run(command, capture_output=True, text=True)
+        process = Setup.do_adb(["shell", "ls",  path])
         if process.stderr:
             print("Error:", process.stderr)
-            raise subprocess.CalledProcessError(f"Terraria subpath: '{os.path.basename(path)}' on android does not exist")
+            raise RuntimeError(f"Required directory: {path} on android does not exist")
