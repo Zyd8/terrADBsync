@@ -1,7 +1,7 @@
-from src.path import Path
-from src.setup import Setup
-from src.sync import Sync
-from src.backup import Backup
+from path import Path
+from setup import Setup
+from sync import Sync
+from backup import Backup
 
 def set_backups():
     """make "backups" directory if not already created, else, create"""
