@@ -1,12 +1,14 @@
+from backup import Backup
 from path import Path
 from setup import Setup
 from sync import Sync
-from backup import Backup
+
 
 def set_backups():
     """make "backups" directory if not already created, else, create"""
     Backup.set_android_dir(Path.ANDROID.get_terraria_backup_rootpath())
     Backup.set_pc_dir(Backup.current_pc_os.get_terraria_backup_rootpath())
+
 
 def set_pc_android():
     """Identify PC os, check adb directory and initialize adb connection"""
@@ -14,16 +16,19 @@ def set_pc_android():
     Sync.check_adb_dir()
     Sync.check_adb_connection()
 
+
 def set_rootpaths():
     """Find default Terraria directories, else, initialize custom paths"""
     Path.set_pc_terraria_rootpath()
     Path.set_android_terraria_rootpath()
+
 
 def check_subpaths():
     """Check subpaths that are supposed to exist, else, terminate program"""
     for android_path, pc_path in zip(Path.ANDROID.get_terraria_array_subpath(), Setup.current_pc_os.get_terraria_array_subpath()):
         Setup.check_android_dir(android_path)
         Setup.check_pc_dir(pc_path)
+
 
 def do_backup_sync():  
     """Do main operation"""
@@ -42,6 +47,7 @@ def do_backup_sync():
 
     Backup.remove_old_archives()
 
+
 def main():
 
     print("=====Setup start====")
@@ -53,6 +59,7 @@ def main():
     
     do_backup_sync()
     print("TerrADBsync Complete!")
+
 
 if __name__ == "__main__":
     main()
