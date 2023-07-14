@@ -2,9 +2,9 @@ import os
 import shutil
 import subprocess
 
-from errorhandler import ErrorHandler
-from path import Path
-from setup import Setup
+from src.errorhandler import ErrorHandler
+from src.path import Path
+from src.setup import Setup
 
 
 class Backup(Setup):

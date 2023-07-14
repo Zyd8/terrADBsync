@@ -13,6 +13,9 @@ class ErrorHandler:
             except FileNotFoundError as e:
                 print(f"File not found error: {e}")
                 ErrorHandler.with_error_terminate()
+            except PermissionError as e:
+                print(f"Permission error: {e}")
+                ErrorHandler.with_error_terminate()
             except RuntimeError as e:
                 print(f"Runtime error: {e}")
                 ErrorHandler.with_error_terminate()
@@ -30,10 +33,11 @@ class ErrorHandler:
 
     @staticmethod
     def with_error_terminate():
-        time.sleep(3)
+        time.sleep(5)
         sys.exit(1)
     
     
     @staticmethod
     def no_error_terminate():
+        time.sleep(5)
         sys.exit(0)

@@ -4,9 +4,9 @@ import os
 import subprocess
 import tempfile
 
-from errorhandler import ErrorHandler
-from path import Path
-from setup import Setup
+from src.errorhandler import ErrorHandler
+from src.path import Path
+from src.setup import Setup
 
 
 class Sync(Setup):
@@ -21,7 +21,10 @@ class Sync(Setup):
     @ErrorHandler.handle_error
     def check_adb_connection():
         """Establish connection with the android device"""
-        output = subprocess.check_output([Setup.adb_path,"devices"]).decode()
+        try:
+            output = subprocess.check_output([Setup.adb_path, "devices"]).decode()
+        except PermissionError:
+            raise PermissionError(f"Consider providing 'execution' permission for file {os.path.basename(Setup.adb_path)} in path {Setup.adb_path}")
         lines = output.strip().split('\n')
         if len(lines) > 1:
             devices = lines[1:]

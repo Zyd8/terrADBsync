@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 import subprocess
 
-from errorhandler import ErrorHandler 
+from src.errorhandler import ErrorHandler 
 
 class Setup():
 
@@ -27,7 +27,7 @@ class Setup():
         """Checks pc path that is supposed to exist, if not, terminate"""
         if not os.path.exists(path):
             raise FileNotFoundError(f"Required directory: {path} on PC does not exist")
-
+        
 
     @staticmethod
     @ErrorHandler.handle_error 

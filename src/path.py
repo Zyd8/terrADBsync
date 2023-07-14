@@ -1,8 +1,8 @@
 from enum import Enum
 import os
 
-from errorhandler import ErrorHandler 
-from setup import Setup
+from src.errorhandler import ErrorHandler 
+from src.setup import Setup
 
 
 class Path(Enum):
@@ -48,6 +48,7 @@ class Path(Enum):
     @ErrorHandler.handle_error
     def pc_custom_path():
         """Inquire for a Terraria rootpath"""
+        print(os.getcwd())
         config_path = os.path.join(os.getcwd(), "custom_path.txt")
         path = input("Terraria directory not found in PC.\nYou can enter the custom path of where you have set the Terraria directory.\nExample: path/to/'Terraria'.\nPress 'q' to terminate program.\n")
         if path.lower() == "q":
