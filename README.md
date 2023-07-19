@@ -44,14 +44,14 @@ There are two options:
    - *Double click the terradbysnc.exe file*
        
  2. Run via terradbsync.py (requires [Python](https://www.python.org/downloads/windows/) that is [set to PATH environment](https://realpython.com/add-python-to-path/))
-   - Open command-line(cmd) and change directory to *src* directory in the extracted zip file
+   - Open command-line(cmd) and change directory to *TerrADBsync-main* directory in the extracted zip file
       - `cd path/to/TerrADBsync-main`  
    - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
       - Enter `python terradbysync.py` 
       - If the above command doesn't work, try `python3 terradbsync.py`
 ### For Linux
  1. Run via terradbsync.py (requires [Python](https://www.python.org/downloads/linux/) that is [set to PATH environment](https://realpython.com/add-python-to-path/))
-  - Launch terminal and change directory to *src* directory in the extracted zip file
+  - Launch terminal and change directory to *TerrADBsync-main* directory in the extracted zip file
       - `cd path/to/TerrADBsync-main`  
   - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
       - Enter `python terradbysync.py` 
