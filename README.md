@@ -10,7 +10,7 @@ Android Terraria v1.4.4.9.2 == PC Terraria v1.4.4.9
 - If Windows flags the program not recommended to run or is malicious, you can review the code.
 - For further concerns, open an issue.
 ## Warning 
-- It does not handle file conflicts. The program cannot yet take action if same files from diffent platforms gets modified, it ***will*** just base on the latest modified date.
+- It does not handle file conflicts. The program cannot yet take action if same files from different platforms gets modified, it ***will*** just base on the latest modified date.
 > That means you can simultaneously play Terraria on your phone and PC as long as both play on different Players and Worlds.
 ## Bundled Features
 * Backups
@@ -45,14 +45,14 @@ There are two options:
        
  2. Run via terradbsync.py (requires [Python](https://www.python.org/downloads/windows/) that is [set to PATH environment](https://realpython.com/add-python-to-path/))
    - Open command-line(cmd) and change directory to *src* directory in the extracted zip file
-      - `cd path/to/src`  
+      - `cd path/to/TerrADBsync-main`  
    - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
       - Enter `python terradbysync.py` 
       - If the above command doesn't work, try `python3 terradbsync.py`
 ### For Linux
  1. Run via terradbsync.py (requires [Python](https://www.python.org/downloads/linux/) that is [set to PATH environment](https://realpython.com/add-python-to-path/))
   - Launch terminal and change directory to *src* directory in the extracted zip file
-      - `cd path/to/src`  
+      - `cd path/to/TerrADBsync-main`  
   - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
       - Enter `python terradbysync.py` 
       - If the above command doesn't work, try `python3 terradbsync.py`
