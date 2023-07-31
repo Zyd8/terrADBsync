@@ -54,7 +54,7 @@ There are two options:
   - Launch terminal and change directory to *TerrADBsync-main* directory in the extracted zip file
       - `cd path/to/TerrADBsync-main`  
   - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
-      - Enter `python terradbysync.py` 
+      - Enter `python terradbysync.py` or alternatively `./terradbsync.py`
       - If the above command doesn't work, try `python3 terradbsync.py`
  # Credits
  - [Terraria](https://icons8.com/icon/52483/terraria) icon by [Icons8](https://icons8.com/)
