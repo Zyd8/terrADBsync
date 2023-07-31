@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from src.backup import Backup
 from src.errorhandler import ErrorHandler
 from src.path import Path
