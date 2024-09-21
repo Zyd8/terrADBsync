@@ -23,6 +23,7 @@ Android Terraria v1.4.4.9.2 == PC Terraria v1.4.4.9
    - Limited only to Windows and Linux
 # Installation
 ## Android Setup
+### Wired Connection
 1. Enable Developer options (Locations may vary).
    - Go to Settings and find `About phone`.
    - Once there, find and press `Build number` seven times or until it notifies you that `You are now a developer!`
@@ -36,6 +37,23 @@ Android Terraria v1.4.4.9.2 == PC Terraria v1.4.4.9
    - In developer options, enable `USB debugging` option located in the `DEBUGGING` section.
 > It's important to note the order of step 3 and 4, otherwise, USB debugging will turn off and have to be enabled again.
 > For more precise info, consider following this [guide](https://www.howtogeek.com/129728/how-to-enable-developer-options-menu-and-enable-and-usb-debugging-on-android/).
+### Wireless Connection
+You can also connect to your phone wirelessly when in the same local network and your phone supports it.
+This method requires you to use a terminal and to have Platform Tools installed on your computer.
+1. Enable Developer options (Locations may vary).
+   - Go to Settings and find `About phone`.
+   - Once there, find and press `Build number` seven times or until it notifies you that `You are now a developer!`.
+   - If `Build number` doesn't show up immediately, it might be in `Software information`.
+2. Enable USB debugging.
+   - Back to Settings, find `Developer options`.
+   - In developer options, enable `USB debugging` option located in the `DEBUGGING` section.
+3. Enable wireless USB debugging.
+   - Still in developer settings, enable and go to `Wireless debugging` just under `USB debugging` and revoke auths button.
+   - Click `Pair device with pairing code` in order to see the IP address, port and a code you'll need in the next step.
+4. Pair to your phone from your PC.
+   - Open either your terminal or the command line.
+   - Type `adb pair IP:PORT` where you replace `IP:PORT` by the address and port provided by your phone, e.g. `adb pair 192.168.1.2:45173`.
+   - Type the pairing code you also got from your phone when asked `Enter pairing code:`.
 ## TerrADBsync Installation
 In the [repository](https://github.com/Zyd8/terrADBsync/tree/main), press the green **`< > Code`** button and `Download ZIP`. Thereafter, extract it.
 ## PC setup and program execution
