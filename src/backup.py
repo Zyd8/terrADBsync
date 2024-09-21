@@ -65,8 +65,12 @@ class Backup(Setup):
         for file in file_list:
             filename, extension = os.path.splitext(file)
             if Setup.is_valid_extension(extension):
-                source_path = os.path.join(self.android_path, file).replace("\\", "/")
+                source_path = os.path.join(self.android_path, file).replace("\\", "/")  # \ -> /
+                source_path = os.path.join(self.android_path, file).replace("'", "\'") # ' -> \'
                 destination_path = os.path.join(android_subpath, file).replace("\\", "/")
+                destination_path = os.path.join(android_subpath, file).replace("'", "\\'")
+                source_path = f'"{source_path}"'
+                destination_path = f'"{destination_path}"'
                 Setup.do_adb(["shell", "cp", source_path, destination_path])
         # PC side
         file_list = os.listdir(self.pc_path)

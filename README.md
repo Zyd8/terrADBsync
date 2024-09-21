@@ -77,6 +77,17 @@ There are two options:
   - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
       - Enter `python terradbysync.py` or alternatively `./terradbsync.py`
       - If the above command doesn't work, try `python3 terradbsync.py`
+### For macOS
+ 1. Ensure you have Python and Platform Tools installed via [Brew](https://brew.sh):
+```bash
+brew install python
+brew install --cask android-platform-tools
+```
+ 2. Run via terradbsync.py
+  - Launch terminal and change directory to *TerrADBsync-main* directory in the extracted zip file
+      - `cd path/to/TerrADBsync-main`  
+  - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
+      - Enter `python3 terradbysync.py` or alternatively `./terradbsync.py`
  # Credits
  - [Terraria](https://icons8.com/icon/52483/terraria) icon by [Icons8](https://icons8.com/)
 

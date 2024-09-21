@@ -1,6 +1,7 @@
 import datetime
 import hashlib
 import os
+import platform
 import subprocess
 import tempfile
 
@@ -43,6 +44,8 @@ class Sync(Setup):
             adb_path = os.path.join(os.getcwd(), "adb_sdk", "windows", "adb.exe")
         elif Setup.current_pc_os == Path.LINUX:
             adb_path =  os.path.join(os.getcwd(), "adb_sdk", "linux", "adb")
+        elif Setup.current_pc_os == Path.MACOS:
+            adb_path =  os.path.join(os.sep, "opt", "homebrew", "bin", "adb")
         Setup.check_pc_dir(adb_path)
         Setup.adb_path = adb_path
    
@@ -51,10 +54,12 @@ class Sync(Setup):
     @ErrorHandler.handle_error
     def check_pc_os():
         """Identify the PC os"""
-        if os.name == "posix":
+        if platform.system() == "Linux":
             Setup.current_pc_os = Path.LINUX
-        elif os.name == "nt":
+        elif platform.system() == "Windows":
             Setup.current_pc_os = Path.WINDOWS
+        elif platform.system() == "Darwin":
+            Setup.current_pc_os = Path.MACOS
         else:
             print("The PC operating system is not supported")
             Sync.with_error_terminate()
@@ -169,7 +174,7 @@ class Sync(Setup):
             if not Setup.is_valid_extension(extension):
                 continue
             file_path =  os.path.join(self.android_path, file).replace("\\", "/")
-            process = Setup.do_adb(["shell", "stat", "-c", "%y", file_path])
+            process = Setup.do_adb(["shell", "stat", "-c", "%y", f'"{file_path}"'])
             output = process.stdout.strip()
             last_modified = datetime.datetime.strptime(output[:19], "%Y-%m-%d %H:%M:%S")
             last_modified = last_modified.strftime("%Y-%m-%d %H:%M:%S")

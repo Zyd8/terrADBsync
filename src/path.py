@@ -10,12 +10,13 @@ class Path(Enum):
 
     WINDOWS = "Windows"
     LINUX = "Linux"
+    MACOS = "macOS"
     ANDROID = "Android"
 
 
     def get_terraria_rootpath(self):
         "Defined depending on the PC os and Terraia default/custom path"
-        if self == Path.WINDOWS or self == Path.LINUX:
+        if self == Path.WINDOWS or self == Path.LINUX or self == Path.MACOS:
             return Setup.current_pc_rootpath
         elif self == Path.ANDROID:
             return Setup.current_android_rootpath
@@ -29,6 +30,9 @@ class Path(Enum):
         elif self == Path.LINUX:
             return [f"{Path.LINUX.get_terraria_rootpath()}/Players", 
                     f"{Path.LINUX.get_terraria_rootpath()}/Worlds"]
+        elif self == Path.MACOS:
+            return [f"{Path.MACOS.get_terraria_rootpath()}/Players", 
+                    f"{Path.MACOS.get_terraria_rootpath()}/Worlds"]
         elif self == Path.ANDROID:
             return [f"{Path.ANDROID.get_terraria_rootpath()}/Players", 
                     f"{Path.ANDROID.get_terraria_rootpath()}/Worlds"]
@@ -40,6 +44,8 @@ class Path(Enum):
             return os.path.join(Path.WINDOWS.get_terraria_rootpath(), "backups")
         elif self == Path.LINUX:
             return f"{Path.LINUX.get_terraria_rootpath()}/backups"
+        elif self == Path.MACOS:
+            return f"{Path.MACOS.get_terraria_rootpath()}/backups"
         elif self == Path.ANDROID:
             return f"{Path.ANDROID.get_terraria_rootpath()}/backups"
         
@@ -71,7 +77,7 @@ class Path(Enum):
     @staticmethod
     @ErrorHandler.handle_error
     def set_android_terraria_rootpath():
-        """Check android default Terarria rootpath, else, terminate"""
+        """Check android default Terraria rootpath, else, terminate"""
         default_path = "sdcard/Android/data/com.and.games505.TerrariaPaid"
         Setup.do_adb(["shell", "ls",  default_path])
         Setup.current_android_rootpath = default_path
@@ -89,6 +95,8 @@ class Path(Enum):
         elif Setup.current_pc_os == Path.LINUX:
             default_paths = [os.path.expanduser("~/.local/share/Terraria"),
                              os.path.expanduser("~/.var/app/com.valvesoftware.Steam/.local/share/Terraria")]
+        elif Setup.current_pc_os == Path.MACOS:
+            default_paths = [os.path.expanduser("~/Library/Application Support/Terraria")]
         
         # Default path condition
         for path in default_paths:
