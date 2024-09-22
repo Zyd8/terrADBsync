@@ -27,6 +27,10 @@ class Backup(Setup):
             Setup.do_adb(["shell", "rm", "-r", last_folder_namepath])
         # PC side
         folder_list = os.listdir(Backup.current_pc_os.get_terraria_backup_rootpath())
+        for folder in folder_list:
+            if os.path.basename(folder) == ".DS_Store":
+                folder_list.remove(folder)
+
         if len(folder_list) > 5:
             last_folder_namepath = os.path.join(Backup.current_pc_os.get_terraria_backup_rootpath(), folder_list[0])
             shutil.rmtree(last_folder_namepath)
