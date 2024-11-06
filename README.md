@@ -84,17 +84,19 @@ There are two options:
 > The macOS version of Terraria was reported corrupting the mobile saves, meaning everything is working fine up until trying to save the world on Android that was modified by your Mac. It will just hung up on 100% and do nothing.
 > 
 > That being said, I kindly ask you to keep track of all the changes you make to your files so you'll be able to revert everything. Hopefully, we'll find the reason and fix it.
+>
+> UPD 2024-11-06: The new versions (Android & macOS) of the game I tested didn't corrupt my save files this time, looks like they've fixed that.
+> Still, do NOT remove the backups folder.
 
  1. Ensure you have Python and Platform Tools installed via [Brew](https://brew.sh):
 ```bash
-brew install python
-brew install --cask android-platform-tools
+brew install python android-platform-tools
 ```
  2. Run via terradbsync.py
   - Launch terminal and change directory to *TerrADBsync-main* directory in the extracted zip file
       - `cd path/to/TerrADBsync-main`  
   - Run the `.py` file using Python (Compatible with Python versions 3.9, 3.10, or 3.11):
-      - Enter `python3 terradbysync.py` or alternatively `./terradbsync.py`
+      - Enter `./terradbsync.py` or alternatively `python3 terradbsync.py`
  # Credits
  - [Terraria](https://icons8.com/icon/52483/terraria) icon by [Icons8](https://icons8.com/)
 
