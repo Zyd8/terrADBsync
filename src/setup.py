@@ -35,8 +35,8 @@ class Setup():
         """Does the default repetitive subprocess.run method"""
         adb_command = [Setup.adb_path] + command
         process = subprocess.run(adb_command, capture_output=True, text=True)
-        if process.stderr:
-            raise subprocess.CalledProcessError(returncode=process.returncode, cmd=adb_command)
+        if not process.returncode == 0:
+            raise subprocess.CalledProcessError(returncode=process.returncode, cmd=adb_command, stderr=process.stderr)
         return process
 
 
